@@ -62,6 +62,3 @@ pytest -v
 - Risk rating and clear technical writing (impact + remediation)
 - Python automation for reporting
 
-## What I learned
-
-(Write 3-4 lines in your own words.)
