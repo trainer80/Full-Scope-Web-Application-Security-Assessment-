@@ -1,0 +1,80 @@
+{
+  "engagement": {
+    "target": "OWASP Juice Shop (local lab: http://localhost:3000)",
+    "environment": "Intentionally vulnerable training application running in Docker on my own machine",
+    "tester": "Rahul Sharma",
+    "period": "REPLACE-WITH-YOUR-DATES",
+    "methodology": "OWASP Web Security Testing Guide (WSTG), OWASP Top 10 (2021)",
+    "summary": "SAMPLE DATA. Replace this paragraph with a short summary of what you tested and what you found, written so a non-technical manager can understand it.",
+    "scope": [
+      "http://localhost:3000 (Juice Shop web application and REST API)",
+      "Out of scope: the host machine, Docker daemon, other networks"
+    ],
+    "tools": ["Burp Suite Community", "OWASP ZAP", "Nmap", "Browser developer tools"],
+    "conclusion": "SAMPLE DATA. Summarise the overall risk posture and the top three fixes you recommend."
+  },
+  "findings": [
+    {
+      "id": "F-001",
+      "title": "SQL injection in login form",
+      "severity": "Critical",
+      "category": "A03:2021 Injection",
+      "affected": "POST /rest/user/login",
+      "description": "User input in the login request is concatenated into a database query without parameterization, so the query logic can be altered.",
+      "impact": "An attacker can bypass authentication and may read or modify data stored in the database.",
+      "steps_to_reproduce": [
+        "Open the login page and intercept the login request in Burp Suite.",
+        "Submit a single quote character in the email field and observe the database error in the response.",
+        "Confirm that crafted input changes the query logic (see your own screenshots)."
+      ],
+      "remediation": "Use parameterized queries / an ORM, validate input server-side, return generic error messages and apply least-privilege database accounts.",
+      "evidence": "screenshots/f-001-login-error.png"
+    },
+    {
+      "id": "F-002",
+      "title": "Reflected cross-site scripting (XSS) in search",
+      "severity": "Medium",
+      "category": "A03:2021 Injection",
+      "affected": "Search feature",
+      "description": "Search input is reflected into the page without proper output encoding.",
+      "impact": "An attacker could run script in a victim's browser, for example to steal session data.",
+      "steps_to_reproduce": [
+        "Enter a harmless marker string in the search box.",
+        "Inspect the page source and confirm the string is reflected unencoded in the HTML.",
+        "Confirm that HTML special characters are not escaped (see your own screenshots)."
+      ],
+      "remediation": "Apply context-aware output encoding, use a strict Content-Security-Policy, and sanitize input.",
+      "evidence": "screenshots/f-002-xss-reflection.png"
+    },
+    {
+      "id": "F-003",
+      "title": "Insecure direct object reference (IDOR) on basket endpoint",
+      "severity": "High",
+      "category": "A01:2021 Broken Access Control",
+      "affected": "GET /rest/basket/{id}",
+      "description": "The server returns a basket based only on the ID in the URL without checking that it belongs to the logged-in user.",
+      "impact": "A logged-in user can view other customers' baskets by changing the numeric ID.",
+      "steps_to_reproduce": [
+        "Log in as a normal user and open your basket while capturing the request.",
+        "Change the basket ID in the request to a different number.",
+        "Observe that another user's basket data is returned."
+      ],
+      "remediation": "Enforce server-side authorization checks on every object access, and use unpredictable identifiers as an additional layer.",
+      "evidence": "screenshots/f-003-idor-basket.png"
+    },
+    {
+      "id": "F-004",
+      "title": "Missing security headers",
+      "severity": "Low",
+      "category": "A05:2021 Security Misconfiguration",
+      "affected": "All responses",
+      "description": "Several recommended HTTP security headers are not set.",
+      "impact": "Reduces defence-in-depth against clickjacking, content sniffing and XSS.",
+      "steps_to_reproduce": [
+        "Send a request to the application and inspect the response headers in Burp or browser dev tools.",
+        "Note the absence of Content-Security-Policy and other recommended headers."
+      ],
+      "remediation": "Add Content-Security-Policy, X-Content-Type-Options, X-Frame-Options (or frame-ancestors) and Referrer-Policy headers."
+    }
+  ]
+}
